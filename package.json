@@ -1,0 +1,15 @@
+{
+  "name": "quiz_service",
+  "version": "1.0.0",
+  "description": "Service for Quiz App",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Manuel Reinhart",
+  "license": "ISC",
+  "dependencies": {
+    "sequelize": "^5.1.0",
+    "tedious": "^5.0.3"
+  }
+}
