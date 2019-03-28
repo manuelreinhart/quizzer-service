@@ -6,7 +6,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true });
 
 exports.ConnectDB = function () {
   client.connect(err => {
-    const collection = client.db("QuizDB").collection("Questions");
+    const collection = client.db("QuizDB").collection("Players");
     // perform actions on the collection object
     collection.find()
 
