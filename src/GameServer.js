@@ -2,7 +2,7 @@
 var PlayRoom = require('./PlayRoom')
 const colyseus = require("colyseus");
 const http = require("http");
-const port = process.env.port || 3000;
+const port = process.env.port || 443;
 
 class GameServer {        
     constructor() {
