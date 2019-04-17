@@ -5,14 +5,16 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "monitor": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },  
+  },
   "author": "Manuel Reinhart",
   "license": "ISC",
   "dependencies": {
-    "colyseus": "^0.10.1",
     "mongodb": "^3.2.2",
-    "sequelize": "^5.1.0",
-    "tedious": "^5.0.3"
+    "websocket": "^1.0.28"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.11"
   }
 }

@@ -5,4 +5,7 @@ Game Service for Quizzer App
 run npm install
 
 # How to start
-run node index.js
+run npm run start
+
+# How to develop
+run npm run monitor
