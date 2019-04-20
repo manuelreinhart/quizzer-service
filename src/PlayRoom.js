@@ -1,39 +1,62 @@
-const colyseus = require("colyseus");
 
-module.exports = class PlayRoom extends colyseus.Room {
-    // When room is initialized
-    onInit (options) {
-        console.log("OnInit")
-     }
+module.exports = class PlayRoom {
+      
 
-    // Checks if a new client is allowed to join. (default: `return true`)
-    requestJoin (options, isNew) {
-        console.log("onRequestJoin")
-        return true;
-     }
+    constructor() {
 
-    // Authorize client based on provided options before WebSocket handshake is complete
-    onAuth (options) {
-        console.log("onAuth")
-     }
 
-    // When client successfully join the room
-    onJoin (client, options, auth) { 
-        console.log("onJoin")
     }
 
-    // When a client sends a message
-    onMessage (client, message) { 
-        console.log("onMessage", message)
+    IsJoinable() {
+        let joinable = this.Player1 == null || this.Player2 == null;
+        return joinable;
     }
 
-    // When a client leaves the room
-    onLeave (client, consented) {
-        console.log("onLeave")
-     }
-
-    // Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
-    onDispose () { 
-        console.log("onDispose")
+    IsReadyToStart() {
+        let ready = this.Player1 != null && this.Player2 != null;
+        return ready;
     }
+
+    JoinRoom(player) {
+        if (this.Player1 == null) {            
+            this.Player1 = player; 
+            console.log("player 1 joined");   
+            return true;    
+        }
+
+        if (this.Player2 == null) {
+            this.Player2 = player;
+
+
+            console.log("player 2 joined -> Ready to Start")   ;
+            this.CallMethod(this.Player1.Connection, "Start", [this.Player2.Name]);
+            this.CallMethod(this.Player2.Connection, "Start", [this.Player1.Name]);
+
+            return true;
+        }
+        
+        console.log("Error: Room is full");      
+
+        return false;
+        
+    }
+
+    CallMethod(con, methodName, params) {
+        let obj = {
+            id:  Math.round(Math.random() * 0xFFFFFF), //Todo
+            methodName: methodName,
+            params: params                  
+        }
+        con.sendUTF(JSON.stringify(obj));
+    }
+
+    SendError(con, error, requestId) {
+        let obj = {
+            id:  Math.round(Math.random() * 0xFFFFFF), //Todo
+            methodName: "Error",
+            params: [error, requestId]                  
+        }
+        con.sendUTF(JSON.stringify(obj));
+    }
+    
 }
