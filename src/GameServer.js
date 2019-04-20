@@ -66,20 +66,10 @@ class GameServer {
             let obj = JSON.parse(message.utf8Data);            
 
             if (!obj)
-                connection.sendUTF("Error: Message should be a valid JSON format");
+                this.SendError(connection, "Error parsing JSON");
 
             if (obj.methodName == "StartQuiz") {
                 this.StartQuiz(connection, obj);                
-            }
-            else if (obj.methodName == "StopQuiz") {                
-                answer.id = obj.id;
-                answer.params = [obj.methodName, 123456];
-                connection.sendUTF(JSON.stringify(answer));
-            }
-            else if (obj.methodName == "AnswerQuizQuestion") {
-                answer.id = obj.id;
-                answer.params = [obj.methodName, true];
-                connection.sendUTF(JSON.stringify(answer));
             }
             else if (obj.methodName == "GetHighscore") {
                 answer.id = obj.id;
@@ -87,12 +77,7 @@ class GameServer {
                 connection.sendUTF(JSON.stringify(answer));
             }
 
-            else {
-                connection.sendUTF("no valid methodName");
-            }
-
             console.log('Received Message: ' + message.utf8Data);
-            //connection.sendUTF(message.utf8Data);
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
@@ -121,10 +106,7 @@ class GameServer {
 
         this.SendCallback(connection, obj.id);  
 
-        gameRoom.JoinRoom(player);
-
-
-             
+        gameRoom.JoinRoom(player);         
             
 
     }
@@ -147,7 +129,7 @@ class GameServer {
         con.sendUTF(JSON.stringify(obj));
     }
 
-    SendError(con, error, requestId) {
+    SendError(con, error, requestId = 0) {
         let obj = {
             id:  Math.round(Math.random() * 0xFFFFFF), //Todo
             methodName: "Error",
