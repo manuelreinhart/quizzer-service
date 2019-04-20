@@ -17,8 +17,9 @@ class GameServer {
         });
         
         server.listen(port, function() {
-            console.log((new Date()) + ' Server is listening on port' + port);
+            console.log(new Date() + ' Server is listening on port' + port);
         });
+
         
         var wsServer = new WebSocketServer({
             httpServer: server,
@@ -43,7 +44,7 @@ class GameServer {
               return;
             }
             
-            var connection = request.accept('echo-protocol', request.origin);
+            var connection = request.accept(null, request.origin);
             console.log((new Date()) + ' Connection accepted.');
             connection.on('message', function(message) {
                 if (message.type === 'utf8') {
