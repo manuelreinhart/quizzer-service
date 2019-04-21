@@ -9,7 +9,12 @@ var QuestionsDB = require('./QuestionsDB')
 class GameServer {   
 
     constructor() {
-        this.PlayRooms = [];        
+        this.PlayRooms1 = [];    
+        this.PlayRooms2 = [];    
+        this.PlayRooms3 = [];     
+        setInterval(() => {
+            console.log("Actual Playrooms: ", this.PlayRooms1.length + this.PlayRooms2.length + this.PlayRooms3.length);
+        }, 5000);
 
     }
     StartServer() {
@@ -90,8 +95,16 @@ class GameServer {
     }
 
     StartQuiz(connection, obj) {
+        let _this = this;
         let playerId = obj.playerId;
         let playerName = obj.params[0];
+        let difficulty = obj.params[1];
+
+        //todo validate params
+        if (difficulty == null || difficulty < 1 || difficulty > 3) {
+            this.SendError(connection, "Difficulty must be between 1 and 3", obj.id);
+            return;
+        }
 
         let player = {
             Connection: connection,
@@ -100,22 +113,29 @@ class GameServer {
         }
 
         this.PlayerDB.InsertPlayer(playerId, playerName);
-      
-        let gameRoom = this.PlayRooms.slice(-1)[0]; //get last room
+              
+        let gameRoom = this['PlayRooms' + difficulty].slice(-1)[0]; //get last room
         if (gameRoom == null || gameRoom.IsJoinable() == false) {
             //create new room
             gameRoom = new PlayRoom(); 
+            gameRoom.Difficulty = difficulty;
             gameRoom.PlayerDB = this.PlayerDB;
-            gameRoom.QuestionDB = this.QuestionDB;         
-            this.PlayRooms.push(gameRoom);
-            console.log("PlayRoom count", this.PlayRooms.length);
+            gameRoom.QuestionDB = this.QuestionDB;  
+            gameRoom.RoomID = Math.round(Math.random() * 0xFFFFFF);                 
+            this['PlayRooms' + difficulty].push(gameRoom);
+            gameRoom.eventEmitter.on('GameEnd', roomID => {
+                let indx = _this['PlayRooms' + difficulty].map(pr => pr.RoomID).indexOf(roomID);
+                if (indx != -1) {
+                    this['PlayRooms' + difficulty].splice(indx, 1);
+                }                        
+            });
+
+            //console.log("PlayRoom2 count", this.PlayRooms2.length);
         }
 
         this.SendCallback(connection, obj.id);  
 
-        gameRoom.JoinRoom(player);         
-            
-
+        gameRoom.JoinRoom(player);      
     }
 
     GetHighScores(connection, obj) {

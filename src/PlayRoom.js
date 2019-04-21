@@ -1,9 +1,11 @@
+var events = require('events');
 
 module.exports = class PlayRoom {
       
 
     constructor() {
 
+        this.eventEmitter = new events.EventEmitter();
 
     }
 
@@ -24,7 +26,7 @@ module.exports = class PlayRoom {
             console.log("player 1 joined");    
 
             player.Index = 1;       
-            this.Player1 = player;                       
+            this.Player1 = player;                                   
                             
             this.RegisterWebsocketEvents(player);
 
@@ -94,16 +96,23 @@ module.exports = class PlayRoom {
             console.log((new Date()) + 'Player ' + player.Name + ' left the game');
         
         if (enemy != null) {
+            this.AddScore(enemy, 30);
             this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' has left!']);
             this['Player' + enemy.Index] = null;
             //enemy.Connection.close();
         }   
 
         this['Player' + player.Index] = null;
+
+        this.EndGame();
         
     }
 
     StartGame() {
+        this.Player1.GameScore = 0;
+        this.Player2.GameScore = 0;
+
+
         this.CallMethod(this.Player1.Connection, "Start", [this.Player2.Name]);
         this.CallMethod(this.Player2.Connection, "Start", [this.Player1.Name]);
 
@@ -130,15 +139,17 @@ module.exports = class PlayRoom {
         this.QuestionNr++;
         this.Player1.HasAnswered = false;
         this.Player2.HasAnswered = false;
+        this.Player1.HasRightAnswered = false;
+        this.Player2.HasRightAnswered = false;
 
         if (this.QuestionTimeout == null) {
             this.QuestionTimeout = setTimeout(() => {
                 console.log("Question Timeout reached!");
-                if (this.Player1 == null || this.Player1.HasAnswered == false) {
-
+                if (this.Player1 != null && this.Player1.HasAnswered == true) {
+                    this.AddScore(this.Player1, this.Player1.HasRightAnswered ? 20 : 5);
                 }
-                else if (this.Player2 == null || this.Player2.HasAnswered == false) {
-
+                else if (this.Player2 != null && this.Player2.HasAnswered == true) {
+                    this.AddScore(this.Player2, this.Player2.HasRightAnswered ? 20 : 5);
                 }
                 else {
 
@@ -149,7 +160,7 @@ module.exports = class PlayRoom {
             }, 10000);
         }
 
-        this.QuestionDB.GetRandomQuestion().then(question => {
+        this.QuestionDB.GetRandomQuestion(this.Difficulty).then(question => {
             _this.ActualQuestion = question;
             this.CallMethod(_this.Player1.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
             this.CallMethod(_this.Player2.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
@@ -157,16 +168,43 @@ module.exports = class PlayRoom {
     }
 
     CheckAnswer(player, answer) {
-        player.HasAnswered = true;
-        if (player.Enemy.HasAnswered) {
+        player.HasAnswered = true;      
+        let rightAnswered = answer == 0
+        player.HasRightAnswered = rightAnswered;        
+
+        if (player.Enemy.HasAnswered) {            
+            if (player.Enemy.HasRightAnswered) {
+                this.AddScore(player.Enemy, 10);
+            }
+            else {
+                this.AddScore(player.Enemy, -20);
+            }
+            if (player.HasRightAnswered) {
+                this.AddScore(player, 5);
+            }
+            else {
+                this.AddScore(player, -20);
+            }
+
             this.ResetTimeout();
             this.SendQuestion();
         }
     }
 
+    AddScore(player, score) {
+        if (player != null) {
+            player.GameScore += score;
+            this.PlayerDB.AddScore(player.ID, score);
+        }
+    }
+
     EndGame() {
-        this.CallMethod(this.Player1.Connection, "EndGame");
-        this.CallMethod(this.Player2.Connection, "EndGame");
+        if (this.Player1 != null)
+            this.CallMethod(this.Player1.Connection, "EndGame");
+        if (this.Player2 != null)
+            this.CallMethod(this.Player2.Connection, "EndGame");
+
+        this.eventEmitter.emit('GameEnd', this.RoomID);
     }
 
     ResetTimeout() {
