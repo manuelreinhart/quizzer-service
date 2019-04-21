@@ -1,9 +1,10 @@
-
-var PlayRoom = require('./PlayRoom')
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 const port = process.env.port || 8080;
 
+var PlayRoom = require('./PlayRoom')
+var PlayersDB = require('./PlayersDB')
+var QuestionsDB = require('./QuestionsDB')
 
 class GameServer {   
 
@@ -13,6 +14,10 @@ class GameServer {
     }
     StartServer() {
         let _this = this;
+        this.PlayerDB = new PlayersDB();
+        this.QuestionDB = new QuestionsDB();
+        this.PlayerDB.Connect();
+        this.QuestionDB.Connect();
 
         var server = http.createServer(function(request, response) {
             console.log((new Date()) + ' Received request for ' + request.url);
@@ -72,9 +77,7 @@ class GameServer {
                 this.StartQuiz(connection, obj);                
             }
             else if (obj.methodName == "GetHighscore") {
-                answer.id = obj.id;
-                answer.params = [obj.methodName, [1,2,3,4]];
-                connection.sendUTF(JSON.stringify(answer));
+                this.GetHighScores(connection, obj);
             }
 
             console.log('Received Message: ' + message.utf8Data);
@@ -95,11 +98,15 @@ class GameServer {
             ID: playerId,
             Name: playerName
         }
+
+        this.PlayerDB.InsertPlayer(playerId, playerName);
       
         let gameRoom = this.PlayRooms.slice(-1)[0]; //get last room
         if (gameRoom == null || gameRoom.IsJoinable() == false) {
             //create new room
-            gameRoom = new PlayRoom();            
+            gameRoom = new PlayRoom(); 
+            gameRoom.PlayerDB = this.PlayerDB;
+            gameRoom.QuestionDB = this.QuestionDB;         
             this.PlayRooms.push(gameRoom);
             console.log("PlayRoom count", this.PlayRooms.length);
         }
@@ -108,6 +115,24 @@ class GameServer {
 
         gameRoom.JoinRoom(player);         
             
+
+    }
+
+    GetHighScores(connection, obj) {
+       this.PlayerDB.GetAllPlayers().then(players => {
+           
+        let highscore = players.map(p => {
+            return {
+                Name: p.PlayerName,
+                Score: p.Score,
+                Games: p.PlayedGames
+
+            }
+        }).sort((a, b) => {
+            return a.Score - b.Score;
+        })
+        this.SendCallback(connection, obj.id, [highscore]);
+       });
 
     }
 

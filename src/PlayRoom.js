@@ -42,10 +42,7 @@ module.exports = class PlayRoom {
             
             this.RegisterWebsocketEvents(player);
             
-            this.CallMethod(this.Player1.Connection, "Start", [this.Player2.Name]);
-            this.CallMethod(this.Player2.Connection, "Start", [this.Player1.Name]);
-
-            this.SendQuestion();
+            this.StartGame();
 
             return true;
         }
@@ -54,14 +51,15 @@ module.exports = class PlayRoom {
 
         return false;
         
-    }
+    }    
 
     RegisterWebsocketEvents(player) {
+        let _this = this;
         player.Connection.on('close', function(reasonCode, description) {
-            this.PlayerHasLeft(player);
+            _this.PlayerHasLeft(player);
         }); 
         player.Connection.on('message', function(message) {
-            this.HandleMessage(player, message);
+            _this.HandleMessage(player, message);
         });
     }
 
@@ -94,21 +92,37 @@ module.exports = class PlayRoom {
         let enemy = player.Enemy;
         if (player != null)
             console.log((new Date()) + 'Player ' + player.Name + ' left the game');
-
-        this['Player' + index] = null;
+        
         if (enemy != null) {
-            this.CallMethod(enemy.Connection, "Stopped", [this.Player1.Name + ' has left!']);
-            this['Player' + enemyIndex] = null;
+            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' has left!']);
+            this['Player' + enemy.Index] = null;
             //enemy.Connection.close();
-        }       
+        }   
+
+        this['Player' + player.Index] = null;
         
     }
 
+    StartGame() {
+        this.CallMethod(this.Player1.Connection, "Start", [this.Player2.Name]);
+        this.CallMethod(this.Player2.Connection, "Start", [this.Player1.Name]);
+
+        this.PlayerDB.IncrementPlayedGames(this.Player1.ID);
+        setTimeout(() => {
+            this.PlayerDB.IncrementPlayedGames(this.Player2.ID);
+        }, 1000);
+        
+
+        this.SendQuestion();
+
+    }
+
     SendQuestion() {
+        let _this = this;
         if (this.QuestionNr == null)
             this.QuestionNr = 0;
 
-        if (this.QuestionNr >= 3) {
+        if (this.Player1 == null || this.Player2 == null || this.QuestionNr >= 3) {
             this.EndGame();
             return;
         }
@@ -119,10 +133,11 @@ module.exports = class PlayRoom {
 
         if (this.QuestionTimeout == null) {
             this.QuestionTimeout = setTimeout(() => {
-                if (this.Player1.HasAnswered == false) {
+                console.log("Question Timeout reached!");
+                if (this.Player1 == null || this.Player1.HasAnswered == false) {
 
                 }
-                else if (this.Player2.HasAnswered == false) {
+                else if (this.Player2 == null || this.Player2.HasAnswered == false) {
 
                 }
                 else {
@@ -134,10 +149,11 @@ module.exports = class PlayRoom {
             }, 10000);
         }
 
-
-        //Get Question
-        //SendQuestion
-
+        this.QuestionDB.GetRandomQuestion().then(question => {
+            _this.ActualQuestion = question;
+            this.CallMethod(_this.Player1.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
+            this.CallMethod(_this.Player2.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
+        });       
     }
 
     CheckAnswer(player, answer) {
@@ -149,7 +165,8 @@ module.exports = class PlayRoom {
     }
 
     EndGame() {
-
+        this.CallMethod(this.Player1.Connection, "EndGame");
+        this.CallMethod(this.Player2.Connection, "EndGame");
     }
 
     ResetTimeout() {
