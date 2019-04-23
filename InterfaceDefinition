@@ -1,0 +1,25 @@
+//Server Methods:
+StartQuiz(playerName: string, difficulty: number) => RoomID: number
+StopQuiz(reason: number | STOPREASON) => void
+AnswerQuizQuestion(answerId: number) => answerWasRight: boolean, rightAnswer: number
+GetHighscore() => Highscore: [HighscoreEntry]
+
+//Client Methods (all void)
+Callback(...params: any)
+Start(enemyName: string)
+NextQuestion(question: string, answer1: string: answer2: string: answer3: string, answer4: string, gameScore: number, gameScoreEnemy: number)
+EndGame(gameScore: number, gameScoreEnemy: number)
+Error(message: string, methodId?: number)
+
+//Definitions:
+HighscoreEntry {
+    Name: string,
+    Score: number,
+    Games: number
+}
+
+STOPREASON {
+    0: unknown,    
+    1: gaveUp,
+    2: ConnectionError
+}

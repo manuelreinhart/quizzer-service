@@ -51,7 +51,7 @@ module.exports = class PlayRoom {
     RegisterWebsocketEvents(player) {
         let _this = this;
         player.Connection.on('close', function(reasonCode, description) {
-            _this.PlayerHasLeft(player);
+            _this.PlayerHasLeft(player, 2);
         }); 
         player.Connection.on('message', function(message) {
             _this.HandleMessage(player, message);
@@ -68,27 +68,28 @@ module.exports = class PlayRoom {
                 this.SendError(connection, "Error parsing JSON");
 
             else if (obj.methodName == "StopQuiz") { 
-                _this.SendCallback(connection, obj.id);               
-                _this.PlayerHasLeft(player);
-            }
-            else if (obj.methodName == "AnswerQuizQuestion") {
                 _this.SendCallback(connection, obj.id);
+                let reason = obj.params[0] | 0;             
+                _this.PlayerHasLeft(player, reason);
+            }
+            else if (obj.methodName == "AnswerQuizQuestion") {                
                 let answer = obj.params[0];
-                this.CheckAnswer(player, answer);
+                let rightAnswer = this.CheckAnswer(player, answer);
+                _this.SendCallback(connection, obj.id, [rightAnswer, 0]);
             }
         }
     }
 
-    PlayerHasLeft(player) {
+    PlayerHasLeft(player, reason = 0) {
         //let enemyIndex = player.Index % 2 + 1;
         //let enemy = this['Player' + enemyIndex];
         let enemy = player.Enemy;
         if (player != null)
-            console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game');
+            console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game - reason ', reason);
         
         if (enemy != null) {
             this.AddScore(enemy, 30);
-            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' left the game!']);
+            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' left the game!', reason]);
             this['Player' + enemy.Index].Connection = null;
         }   
 
@@ -182,6 +183,8 @@ module.exports = class PlayRoom {
             this.ResetTimeout();
             this.SendQuestion();
         }
+
+        return player.HasRightAnswered;
     }
 
     AddScore(player, score) {

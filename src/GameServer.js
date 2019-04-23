@@ -130,7 +130,7 @@ class GameServer {
               
         let gameRoom = this.GetPlayroom(difficulty);
 
-        this.SendCallback(connection, obj.id);  
+        this.SendCallback(connection, obj.id, [gameRoom.RoomID]);  
 
         gameRoom.JoinRoom(player);      
     }
