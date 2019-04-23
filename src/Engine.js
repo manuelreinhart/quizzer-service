@@ -1,7 +1,7 @@
 var GameServer = require('./GameServer')
 
 function Start() {
-    console.log("Start Engine");          
+    console.log("Start Quizz Engine");         
 
     var gameServer = new GameServer.GameServer();
     gameServer.StartServer();    

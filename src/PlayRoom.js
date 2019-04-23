@@ -4,9 +4,7 @@ module.exports = class PlayRoom {
       
 
     constructor() {
-
-        this.eventEmitter = new events.EventEmitter();
-
+        this.eventEmitter = new events.EventEmitter();      
     }
 
     IsJoinable() {
@@ -14,16 +12,11 @@ module.exports = class PlayRoom {
         return joinable;
     }
 
-    IsReadyToStart() {
-        let ready = this.Player1 != null && this.Player2 != null;
-        return ready;
-    }
-
     JoinRoom(player) {
         let _this = this;
 
         if (this.Player1 == null) {      
-            console.log("player 1 joined");    
+            console.log("Room ", this.RoomID, ": player 1 joined");    
 
             player.Index = 1;       
             this.Player1 = player;                                   
@@ -34,7 +27,7 @@ module.exports = class PlayRoom {
         }
 
         if (this.Player2 == null) {
-            console.log("player 2 joined -> Ready to Start")   ;
+            console.log("Room ", this.RoomID, ": player 2 joined -> Ready to Start")   ;
 
             player.Index = 2;
             this.Player2 = player;
@@ -49,7 +42,7 @@ module.exports = class PlayRoom {
             return true;
         }
         
-        console.log("Error: Room is full");      
+        console.log("Room ", this.RoomID, " Error: Room is full");      
 
         return false;
         
@@ -83,8 +76,6 @@ module.exports = class PlayRoom {
                 let answer = obj.params[0];
                 this.CheckAnswer(player, answer);
             }
-
-            console.log('Received Message: ' + message.utf8Data);
         }
     }
 
@@ -93,13 +84,12 @@ module.exports = class PlayRoom {
         //let enemy = this['Player' + enemyIndex];
         let enemy = player.Enemy;
         if (player != null)
-            console.log((new Date()) + 'Player ' + player.Name + ' left the game');
+            console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game');
         
         if (enemy != null) {
             this.AddScore(enemy, 30);
-            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' has left!']);
-            this['Player' + enemy.Index] = null;
-            //enemy.Connection.close();
+            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' left the game!']);
+            this['Player' + enemy.Index].Connection = null;
         }   
 
         this['Player' + player.Index].Connection = null;
@@ -108,11 +98,12 @@ module.exports = class PlayRoom {
         
     }
 
-    StartGame() {
+    StartGame() {   
+        this.GameStarted = true;
+        
         this.Player1.GameScore = 0;
         this.Player2.GameScore = 0;
-
-
+        
         this.CallMethod(this.Player1.Connection, "Start", [this.Player2.Name]);
         this.CallMethod(this.Player2.Connection, "Start", [this.Player1.Name]);
 
@@ -144,7 +135,7 @@ module.exports = class PlayRoom {
 
         if (this.QuestionTimeout == null) {
             this.QuestionTimeout = setTimeout(() => {
-                console.log("Question Timeout reached!");
+                console.log("Room ", this.RoomID, ": Question Timeout reached!");
                 if (this.Player1 != null && this.Player1.HasAnswered == true) {
                     this.AddScore(this.Player1, this.Player1.HasRightAnswered ? 20 : 5);
                 }
@@ -157,7 +148,7 @@ module.exports = class PlayRoom {
                 this.ResetTimeout();
                 this.SendQuestion();
 
-            }, 10000);
+            }, 15000);
         }
 
         this.QuestionDB.GetRandomQuestion(this.Difficulty).then(question => {
@@ -201,6 +192,9 @@ module.exports = class PlayRoom {
     }
 
     EndGame() {
+        if (!this.GameStarted)
+            return;
+
         if (this.Player1 != null)
             this.CallMethod(this.Player1.Connection, "EndGame", [this.Player1.GameScore, this.Player2.GameScore]);
         if (this.Player2 != null)

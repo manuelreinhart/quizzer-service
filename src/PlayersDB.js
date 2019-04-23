@@ -48,7 +48,6 @@ module.exports = class PlayersDB {
     let playerQuery = {PlayerID: playerId};
     this.collection.findOne(playerQuery).then(player => {
       if (player == null) {
-
         return;
       }
       let newScore = player.Score + score;
@@ -65,15 +64,13 @@ module.exports = class PlayersDB {
     let playerQuery = {PlayerID: playerId};
     this.collection.findOne(playerQuery).then(player => {      
       if (player == null) {
-
         return;
       }     
       let newvalues = { $set: {
         PlayedGames: player.PlayedGames + 1
-      } };
+      }};
       this.collection.updateOne(playerQuery, newvalues, (err, res) => {
         if (err) throw err;
-        console.log("Played Games updated");
       });
     });
   }
