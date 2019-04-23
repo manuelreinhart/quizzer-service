@@ -102,7 +102,7 @@ module.exports = class PlayRoom {
             //enemy.Connection.close();
         }   
 
-        this['Player' + player.Index] = null;
+        this['Player' + player.Index].Connection = null;
 
         this.EndGame();
         
@@ -162,8 +162,10 @@ module.exports = class PlayRoom {
 
         this.QuestionDB.GetRandomQuestion(this.Difficulty).then(question => {
             _this.ActualQuestion = question;
-            this.CallMethod(_this.Player1.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
-            this.CallMethod(_this.Player2.Connection, "NextQuestion", [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4]);
+            this.CallMethod(_this.Player1.Connection, "NextQuestion", 
+                [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4, _this.Player1.GameScore, _this.Player2.GameScore]);
+            this.CallMethod(_this.Player2.Connection, "NextQuestion", 
+                [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4, _this.Player2.GameScore, _this.Player1.GameScore]);
         });       
     }
 
@@ -200,9 +202,9 @@ module.exports = class PlayRoom {
 
     EndGame() {
         if (this.Player1 != null)
-            this.CallMethod(this.Player1.Connection, "EndGame");
+            this.CallMethod(this.Player1.Connection, "EndGame", [this.Player1.GameScore, this.Player2.GameScore]);
         if (this.Player2 != null)
-            this.CallMethod(this.Player2.Connection, "EndGame");
+            this.CallMethod(this.Player2.Connection, "EndGame", [this.Player2.GameScore, this.Player1.GameScore]);
 
         this.eventEmitter.emit('GameEnd', this.RoomID);
     }
@@ -213,6 +215,9 @@ module.exports = class PlayRoom {
     }
 
     SendCallback(con, id, params = []) {
+        if (con == null)
+            return;
+
         let answer = {
             id: id,
             methodName: "Callback",
@@ -222,6 +227,9 @@ module.exports = class PlayRoom {
     }
 
     CallMethod(con, methodName, params) {
+        if (con == null)
+            return;
+
         let obj = {
             id:  Math.round(Math.random() * 0xFFFFFF), //Todo
             methodName: methodName,
@@ -231,6 +239,9 @@ module.exports = class PlayRoom {
     }
 
     SendError(con, error, requestId) {
+        if (con == null)
+            return;
+
         let obj = {
             id:  Math.round(Math.random() * 0xFFFFFF), //Todo
             methodName: "Error",
