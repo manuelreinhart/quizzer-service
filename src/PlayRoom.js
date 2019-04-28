@@ -123,7 +123,7 @@ module.exports = class PlayRoom {
         if (this.QuestionNr == null)
             this.QuestionNr = 0;
 
-        if (this.Player1 == null || this.Player2 == null || this.QuestionNr >= 3) {
+        if (this.Player1 == null || this.Player2 == null || this.QuestionNr >= 10) {
             this.EndGame();
             return;
         }
