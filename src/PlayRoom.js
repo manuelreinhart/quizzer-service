@@ -195,7 +195,7 @@ module.exports = class PlayRoom {
 
     EndGame() {
         if (this.Player1 != null && this.Player1.Connection != null) {
-            let playerscore = this.Player1.GameScore == null ? 0 : this.Player1.playerscore;
+            let playerscore = this.Player1.GameScore == null ? 0 : this.Player1.GameScore;
             let enemyscore = 0;
             if (this.Player2 != null && this.Player2.GameScore != null)
                 enemyscore = this.Player2.GameScore;
@@ -203,7 +203,7 @@ module.exports = class PlayRoom {
         }
             
         if (this.Player2 != null && this.Player2.Connection != null) {
-            let playerscore = this.Player2.GameScore == null ? 0 : this.Player2.playerscore;
+            let playerscore = this.Player2.GameScore == null ? 0 : this.Player2.GameScore;
             let enemyscore = 0;
             if (this.Player1 != null && this.Player1.GameScore != null)
                 enemyscore = this.Player1.GameScore;
