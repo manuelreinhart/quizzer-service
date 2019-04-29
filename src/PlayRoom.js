@@ -195,13 +195,21 @@ module.exports = class PlayRoom {
     }
 
     EndGame() {
-        if (!this.GameStarted)
-            return;
-
-        if (this.Player1 != null)
-            this.CallMethod(this.Player1.Connection, "EndGame", [this.Player1.GameScore, this.Player2.GameScore]);
-        if (this.Player2 != null)
-            this.CallMethod(this.Player2.Connection, "EndGame", [this.Player2.GameScore, this.Player1.GameScore]);
+        if (this.Player1 != null && this.Player1.Connection != null) {
+            let playerscore = this.Player1.GameScore == null ? 0 : this.Player1.playerscore;
+            let enemyscore = 0;
+            if (this.Player2 != null && this.Player2.GameScore != null)
+                enemyscore = this.Player2.GameScore;
+            this.CallMethod(this.Player1.Connection, "EndGame", [playerscore, enemyscore]);
+        }
+            
+        if (this.Player2 != null && this.Player2.Connection != null) {
+            let playerscore = this.Player2.GameScore == null ? 0 : this.Player2.playerscore;
+            let enemyscore = 0;
+            if (this.Player1 != null && this.Player1.GameScore != null)
+                enemyscore = this.Player1.GameScore;
+            this.CallMethod(this.Player2.Connection, "EndGame", [playerscore, enemyscore]);
+        }
 
         this.eventEmitter.emit('GameEnd', this.RoomID);
     }
