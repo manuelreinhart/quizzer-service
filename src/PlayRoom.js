@@ -165,7 +165,7 @@ module.exports = class PlayRoom {
         let rightAnswered = answer == 0
         player.HasRightAnswered = rightAnswered;        
 
-        if (player.Enemy.HasAnswered) {            
+        if (player.Enemy && player.Enemy.HasAnswered) {            
             if (player.Enemy.HasRightAnswered) {
                 this.AddScore(player.Enemy, 10);
             }
