@@ -169,7 +169,7 @@ module.exports = class PlayRoom {
 
         this.QuestionDB.GetRandomQuestion(this.Difficulty, this.GameQuestions).then(question => {
             _this.ActualQuestion = question;
-            _this.GameQuestions.push(question._id);
+            _this.GameQuestions.push(question._id.toString());
             this.CallMethod(_this.Player1.Connection, "NextQuestion", 
                 [question.Question, question.Answer1, question.Answer2, question.Answer3, question.Answer4, _this.Player1.GameScore, _this.Player2.GameScore]);
             this.CallMethod(_this.Player2.Connection, "NextQuestion", 
