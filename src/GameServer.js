@@ -74,7 +74,7 @@ class GameServer {
             try {
                 obj = JSON.parse(message.utf8Data);   
             }
-            catch {
+            catch (err) {
                 this.SendError(connection, "Error parsing JSON");
             }                     
 
