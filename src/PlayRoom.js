@@ -83,12 +83,18 @@ module.exports = class PlayRoom {
     PlayerHasLeft(player, reason = 0) {
         //let enemyIndex = player.Index % 2 + 1;
         //let enemy = this['Player' + enemyIndex];
-        let enemy = player.Enemy;              
-        if (player != null)
-            console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game - reason ', reason);
+        let enemy = player.Enemy;         
+
+        console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game - reason ', reason);
+        this.AddScore(player, -20);
         
         if (enemy != null) {
-            this.AddScore(enemy, 30);
+            if (enemy.HasAnswered == true)
+                this.AddScore(enemy, enemy.HasRightAnswered ? 10 : -5);
+
+            else
+                this.AddScore(enemy, enemy.HasRightAnswered ? 10 : -5);
+            
             this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' left the game!', reason]);
         }   
 
@@ -109,7 +115,7 @@ module.exports = class PlayRoom {
         this.PlayerDB.IncrementPlayedGames(this.Player1.ID);
         setTimeout(() => {
             this.PlayerDB.IncrementPlayedGames(this.Player2.ID);
-        }, 1000);
+        }, 2000);
         
 
         this.SendQuestion();
@@ -136,13 +142,16 @@ module.exports = class PlayRoom {
             this.QuestionTimeout = setTimeout(() => {
                 console.log("Room ", this.RoomID, ": Question Timeout reached!");
                 if (this.Player1 != null && this.Player1.HasAnswered == true) {
-                    this.AddScore(this.Player1, this.Player1.HasRightAnswered ? 20 : 5);
+                    this.AddScore(this.Player1, this.Player1.HasRightAnswered ? 10 : -5);
+                    this.AddScore(this.Player2, -10);
                 }
                 else if (this.Player2 != null && this.Player2.HasAnswered == true) {
-                    this.AddScore(this.Player2, this.Player2.HasRightAnswered ? 20 : 5);
+                    this.AddScore(this.Player2, this.Player2.HasRightAnswered ? 10 : -5);
+                    this.AddScore(this.Player1, -10);
                 }
                 else {
-
+                    this.AddScore(this.Player1, -10);
+                    this.AddScore(this.Player2, -10);
                 }                
                 this.ResetTimeout();
                 this.SendQuestion();
@@ -167,16 +176,16 @@ module.exports = class PlayRoom {
 
         if (player.Enemy && player.Enemy.HasAnswered) {            
             if (player.Enemy.HasRightAnswered) {
-                this.AddScore(player.Enemy, 10);
+                this.AddScore(player.Enemy, 20);
             }
             else {
-                this.AddScore(player.Enemy, -20);
-            }
+                this.AddScore(player.Enemy, -5);
+            }            
             if (player.HasRightAnswered) {
-                this.AddScore(player, 5);
+                this.AddScore(player, 10);
             }
             else {
-                this.AddScore(player, -20);
+                this.AddScore(player, -5);
             }
 
             this.ResetTimeout();
