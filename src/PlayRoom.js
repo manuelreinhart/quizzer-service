@@ -214,6 +214,9 @@ module.exports = class PlayRoom {
     }
 
     EndGame() {
+        if (debug)
+            console.log('EndGame');
+
         if (this.Player1 != null && this.Player1.Connection != null) {
             let playerscore = this.Player1.GameScore == null ? 0 : this.Player1.GameScore;
             let enemyscore = 0;

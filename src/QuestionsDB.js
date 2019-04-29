@@ -24,6 +24,7 @@ module.exports = class PlayersDB {
     return new Promise((resolve, reject) => {
       this.GetAllQuestions(difficulty).then(allQuestions => {
         allQuestions = allQuestions.filter(q => blackList.indexOf(q._id) == -1);
+        console.log("AvailableQuestions", allQuestions.length);
         var r = Math.floor(Math.random() * allQuestions.length);
         let randomQuestion = allQuestions[r];
         resolve(randomQuestion);
