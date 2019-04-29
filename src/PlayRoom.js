@@ -1,4 +1,5 @@
 var events = require('events');
+const debug = true;
 
 module.exports = class PlayRoom {
       
@@ -16,7 +17,8 @@ module.exports = class PlayRoom {
         let _this = this;
 
         if (this.Player1 == null) {      
-            console.log("Room ", this.RoomID, ": player 1 joined");    
+            if (debug)
+                console.log("Room ", this.RoomID, ": player 1 joined");    
 
             player.Index = 1;       
             this.Player1 = player;                                   
@@ -27,6 +29,7 @@ module.exports = class PlayRoom {
         }
 
         if (this.Player2 == null) {
+            if (debug)
             console.log("Room ", this.RoomID, ": player 2 joined -> Ready to Start")   ;
 
             player.Index = 2;
@@ -62,6 +65,9 @@ module.exports = class PlayRoom {
         let _this = this;
         let connection = player.Connection;
         if (message.type === 'utf8') {
+            if (debug)
+                console.log('Received Message: ' + message.utf8Data);
+
             let obj = JSON.parse(message.utf8Data);            
 
             if (!obj)
@@ -83,9 +89,11 @@ module.exports = class PlayRoom {
     PlayerHasLeft(player, reason = 0) {
         //let enemyIndex = player.Index % 2 + 1;
         //let enemy = this['Player' + enemyIndex];
-        let enemy = player.Enemy;         
+        let enemy = player.Enemy;     
 
-        console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game - reason ', reason);
+        if (debug)
+            console.log("Room ", this.RoomID, ": Player ", player.Name, ' left the game - reason ', reason);
+
         this.AddScore(player, -20);
         
         if (enemy != null) {
@@ -171,7 +179,7 @@ module.exports = class PlayRoom {
 
     CheckAnswer(player, answer) {
         player.HasAnswered = true;      
-        let rightAnswered = answer == 0
+        let rightAnswered = answer == 1;
         player.HasRightAnswered = rightAnswered;        
 
         if (player.Enemy && player.Enemy.HasAnswered) {            
@@ -197,6 +205,9 @@ module.exports = class PlayRoom {
 
     AddScore(player, score) {
         if (player != null) {
+            if (debug)
+                console.log('Add Score to ', player.Name, score);
+
             player.GameScore += score;
             this.PlayerDB.AddScore(player.ID, score);
         }

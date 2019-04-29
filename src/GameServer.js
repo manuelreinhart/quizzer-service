@@ -1,6 +1,7 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 const port = process.env.port || 8080;
+const debug = true;
 
 var PlayRoom = require('./PlayRoom')
 var PlayersDB = require('./PlayersDB')
@@ -11,9 +12,17 @@ class GameServer {
     constructor() {
         this.PlayRooms1 = [];    
         this.PlayRooms2 = [];    
-        this.PlayRooms3 = [];     
+        this.PlayRooms3 = [];  
+        
+        this.PlayroomLength = 0;
+        
         setInterval(() => {
-            console.log("Actual Playrooms: ", this.PlayRooms1.length + this.PlayRooms2.length + this.PlayRooms3.length);
+            let playrooms =  this.PlayRooms1.length + this.PlayRooms2.length + this.PlayRooms3.length;
+            if (playrooms != this.PlayroomLength) {
+                console.log("Actual Playrooms: ", playrooms);
+                this.PlayroomLength = playrooms;
+            }
+            
         }, 5000);
 
     }
@@ -68,7 +77,8 @@ class GameServer {
     HandleMessage(connection, message) {
         if (message.type === 'utf8') {
 
-            console.log('Received Message: ' + message.utf8Data);
+            if (debug)
+                console.log('Received Message: ' + message.utf8Data);
             
             let obj;
             try {
@@ -190,6 +200,8 @@ class GameServer {
             methodName: "Callback",
             params: params                  
         }
+        if (debug)
+            console.log('SendCallback: ', id);
         con.sendUTF(JSON.stringify(answer));
     }
 
@@ -199,6 +211,8 @@ class GameServer {
             methodName: methodName,
             params: params                  
         }
+        if (debug)
+            console.log('CallMethod: ', methodName);
         con.sendUTF(JSON.stringify(obj));
     }
 
@@ -208,6 +222,8 @@ class GameServer {
             methodName: "Error",
             params: [error, requestId]                  
         }
+        if (debug)
+            console.log('SendError: ');
         con.sendUTF(JSON.stringify(obj));
     }
 
