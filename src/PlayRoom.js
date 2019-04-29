@@ -147,7 +147,7 @@ module.exports = class PlayRoom {
                 this.ResetTimeout();
                 this.SendQuestion();
 
-            }, 15000);
+            }, 10000);
         }
 
         this.QuestionDB.GetRandomQuestion(this.Difficulty, this.GameQuestions).then(question => {
