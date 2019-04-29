@@ -167,8 +167,8 @@ class GameServer {
 
             }
         }).sort((a, b) => {
-            return a.Score - b.Score;
-        })
+            return b.Score - a.Score;
+        }).slice(0, 20);
         this.SendCallback(connection, obj.id, [highscore]);
        });
 
