@@ -127,7 +127,7 @@ module.exports = class PlayRoom {
         
         setTimeout(() => {
             this.SendQuestion();
-        }, 500);       
+        }, 2000);       
 
     }
 
