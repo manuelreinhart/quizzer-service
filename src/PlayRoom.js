@@ -40,7 +40,9 @@ module.exports = class PlayRoom {
             
             this.RegisterWebsocketEvents(player);
             
-            this.StartGame();
+            setTimeout(() => {
+                this.StartGame();
+            }, 1000);            
 
             return true;
         }
