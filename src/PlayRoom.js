@@ -103,7 +103,7 @@ module.exports = class PlayRoom {
             else
                 this.AddScore(enemy, enemy.HasRightAnswered ? 10 : -5);
             
-            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' left the game!', reason]);
+            this.CallMethod(enemy.Connection, "Stopped", [player.Name + ' hat das Spiel verlassen!', reason]);
         }   
 
         this.EndGame();       
@@ -125,8 +125,9 @@ module.exports = class PlayRoom {
             this.PlayerDB.IncrementPlayedGames(this.Player2.ID);
         }, 2000);
         
-
-        this.SendQuestion();
+        setTimeout(() => {
+            this.SendQuestion();
+        }, 500);       
 
     }
 
